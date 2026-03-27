@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pickleball League</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;background:#F6F5F0;color:#1A1A18;min-height:100vh}
+
+:root{
+  --g:#1D9E75;--gl:#E1F5EE;--gd:#0F6E56;
+  --am:#BA7517;--aml:#FAEEDA;
+  --re:#A32D2D;--rel:#FCEBEB;
+  --bg:#F6F5F0;--card:#fff;--bg2:#F1EFE8;
+  --t1:#1A1A18;--t2:#666660;--t3:#9E9D97;
+  --br:rgba(0,0,0,0.1);--br2:rgba(0,0,0,0.18);
+  --r:8px;--rl:12px
+}
+
+/* Layout */
+.wrap{max-width:920px;margin:0 auto;padding:20px 16px}
+.header{display:flex;align-items:center;margin-bottom:20px;gap:10px}
+.header svg{flex-shrink:0}
+.header h1{font-size:20px;font-weight:500;flex:1}
+
+/* Nav */
+.nav{display:flex;margin-bottom:20px;border-bottom:1px solid var(--br)}
+.nav-btn{padding:8px 16px;font-size:13px;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-1px;font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:color .15s}
+.nav-btn.on{color:var(--t1);border-bottom:2px solid var(--g);font-weight:500}
+.nav-btn:hover:not(.on){color:var(--t1)}
+
+/* Buttons */
+.btn-primary{background:var(--g);color:#fff;border:none;padding:8px 16px;border-radius:var(--r);
+  font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-primary:hover{background:var(--gd)}
+.btn-primary:disabled{opacity:.5;cursor:default}
+.btn-outline{background:transparent;color:var(--t2);border:0.5px solid var(--br2);padding:8px 16px;
+  border-radius:var(--r);font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-outline:hover{background:var(--bg2);color:var(--t1)}
+.btn-danger{background:#E24B4A;color:#fff;border:none;padding:9px 20px;border-radius:var(--r);
+  font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;flex:1;transition:background .15s}
+.btn-danger:hover{background:var(--re)}
+.btn-danger:disabled{opacity:.5;cursor:default}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.metric{background:var(--bg2);border-radius:var(--r);padding:12px 14px}
+.metric-label{font-size:11px;color:var(--t2);margin-bottom:5px;font-weight:500}
+.metric-val{font-size:22px;font-weight:500}
+.metric-sub{font-size:11px;color:var(--t3);margin-top:2px}
+
+/* Leaderboard */
+.lb-header{display:flex;align-items:center;margin-bottom:10px}
+.section-label{font-size:11px;font-weight:500;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;flex:1}
+.tab-pills{display:flex;gap:4px}
+.pill-btn{padding:4px 12px;font-size:12px;border-radius:20px;border:0.5px solid var(--br2);cursor:pointer;
+  color:var(--t2);font-family:inherit;background:transparent;transition:all .15s}
+.pill-btn.on{background:var(--g);color:#fff;border-color:var(--g);font-weight:500}
+.lb-wrap{border:0.5px solid var(--br);border-radius:var(--rl);overflow:hidden}
+.lb-head{display:grid;grid-template-columns:32px 1fr 48px 48px 62px 62px;padding:8px 14px;
+  font-size:11px;font-weight:500;color:var(--t2);background:var(--bg2);border-bottom:0.5px solid var(--br)}
+.lb-row{display:grid;grid-template-columns:32px 1fr 48px 48px 62px 62px;padding:10px 14px;
+  border-bottom:0.5px solid var(--br);align-items:center;font-size:13px;transition:background .1s}
+.lb-row:last-child{border-bottom:none}
+.lb-row:hover{background:var(--bg2)}
+.rank{font-size:12px;color:var(--t3);font-weight:500}
+.rank-1{color:#BA7517}
+.rank-2{color:#888780}
+.rank-3{color:#8B4513}
+.player-cell{display:flex;align-items:center;gap:8px}
+.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:500;flex-shrink:0}
+.pname{font-weight:500;font-size:13px}
+.num{text-align:center}
+.winpct{text-align:center;font-weight:500}
+.streak-cell{text-align:center}
+.streak-pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:500}
+.sw{background:var(--gl);color:var(--gd)}
+.sl{background:var(--rel);color:var(--re)}
+
+/* History */
+.toolbar{display:flex;gap:8px;margin-bottom:12px}
+.search-input{flex:1;background:var(--card);border:0.5px solid var(--br2);border-radius:var(--r);
+  padding:8px 12px;font-size:13px;color:var(--t1);font-family:inherit;outline:none}
+.search-input:focus{border-color:var(--g)}
+.filter-sel{background:var(--card);border:0.5px solid var(--br2);border-radius:var(--r);
+  padding:8px 10px;font-size:13px;color:var(--t1);font-family:inherit;cursor:pointer;outline:none}
+.htable-wrap{border:0.5px solid var(--br);border-radius:var(--rl);overflow:hidden}
+.ht-head{display:grid;grid-template-columns:70px 1fr 1fr 72px 74px 62px;padding:8px 14px;
+  font-size:11px;font-weight:500;color:var(--t2);background:var(--bg2);border-bottom:0.5px solid var(--br);gap:8px}
+.ht-row{display:grid;grid-template-columns:70px 1fr 1fr 72px 74px 62px;padding:10px 14px;
+  border-bottom:0.5px solid var(--br);align-items:center;font-size:13px;gap:8px;transition:background .1s}
+.ht-row:last-child{border-bottom:none}
+.ht-row:hover{background:var(--bg2)}
+.team-col{display:flex;flex-direction:column;gap:3px}
+.team-name{font-size:12px;color:var(--t1)}
+.team-name.w{font-weight:500;color:var(--gd)}
+.score-col{text-align:center;font-size:14px;font-weight:500}
+.ws{color:var(--g)}
+.date-col{font-size:12px;color:var(--t2)}
+.fmt-pill{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:500}
+.fp-s{background:#E6F1FB;color:#185FA5}
+.fp-d{background:#EEEDFE;color:#534AB7}
+.row-actions{display:flex;gap:5px;justify-content:flex-end}
+.icon-btn{width:26px;height:26px;border:0.5px solid var(--br);border-radius:6px;display:flex;
+  align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--t2);
+  background:var(--card);transition:all .15s;flex-shrink:0;font-family:inherit}
+.icon-btn:hover{background:var(--bg2);border-color:var(--br2)}
+.icon-btn.danger:hover{border-color:#E24B4A;color:#E24B4A;background:var(--rel)}
+
+/* Players */
+.players-header{display:flex;align-items:center;margin-bottom:12px}
+.players-header h2{font-size:16px;font-weight:500;flex:1}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.pcard{background:var(--card);border:0.5px solid var(--br);border-radius:var(--rl);padding:16px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;transition:border-color .15s}
+.pcard:hover{border-color:var(--br2)}
+.card-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.pcard:hover .card-actions{opacity:1}
+.av-lg{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:500;flex-shrink:0}
+.pcard-name{font-size:13px;font-weight:500;text-align:center}
+.pcard-stats{display:flex;gap:14px}
+.pstat{text-align:center}
+.pstat-val{font-size:14px;font-weight:500}
+.pstat-label{font-size:10px;color:var(--t3)}
+.pcard-joined{font-size:10px;color:var(--t3)}
+.add-card{border:0.5px dashed var(--br2);border-radius:var(--rl);padding:16px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  min-height:140px;color:var(--t3);font-size:13px;transition:all .15s}
+.add-card:hover{border-color:var(--g);color:var(--g);background:var(--gl)}
+.add-plus{width:32px;height:32px;border-radius:50%;border:1.5px solid currentColor;
+  display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;
+  justify-content:center;z-index:100;padding:16px}
+.modal{background:var(--card);border-radius:var(--rl);width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;align-items:center;padding:16px 20px 0;margin-bottom:16px}
+.modal-head h3{font-size:15px;font-weight:500;flex:1}
+.modal-close{width:28px;height:28px;border-radius:50%;border:0.5px solid var(--br);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;
+  color:var(--t2);background:transparent;flex-shrink:0;font-family:inherit;transition:background .15s}
+.modal-close:hover{background:var(--bg2)}
+.modal-body{padding:0 20px 20px}
+.modal-foot{border-top:0.5px solid var(--br);padding:14px 20px;display:flex;gap:8px}
+
+/* Forms */
+.field{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:500;color:var(--t2);letter-spacing:.05em;
+  text-transform:uppercase;margin-bottom:7px;display:block}
+.toggle-group{display:flex;gap:6px}
+.tgl-btn{flex:1;padding:8px;border:0.5px solid var(--br2);border-radius:var(--r);font-size:13px;
+  text-align:center;cursor:pointer;color:var(--t2);font-family:inherit;background:transparent;transition:all .15s}
+.tgl-btn.on{background:var(--g);color:#fff;border-color:var(--g);font-weight:500}
+.players-form-grid{display:grid;grid-template-columns:1fr 28px 1fr;gap:8px;align-items:start}
+.vs-sep{text-align:center;font-size:13px;font-weight:500;color:var(--t3);padding-top:9px}
+.team-slots{display:flex;flex-direction:column;gap:6px}
+.pselect{width:100%;background:var(--bg2);border:0.5px solid var(--br);border-radius:var(--r);
+  padding:8px 10px;font-size:13px;color:var(--t1);font-family:inherit;cursor:pointer;outline:none;transition:border-color .15s}
+.pselect:focus{border-color:var(--g)}
+.score-form-row{display:grid;grid-template-columns:1fr 28px 1fr;gap:8px;align-items:center}
+.score-sep{text-align:center;font-size:16px;font-weight:500;color:var(--t3)}
+.score-inp{width:100%;background:var(--bg2);border:0.5px solid var(--br);border-radius:var(--r);
+  padding:9px;font-size:22px;font-weight:500;text-align:center;color:var(--t1);font-family:inherit;outline:none;transition:all .15s}
+.score-inp:focus{border-color:var(--g)}
+.score-inp.win{border-color:var(--g);color:var(--g)}
+.winner-badge{display:flex;align-items:center;gap:6px;background:var(--gl);
+  padding:8px 12px;border-radius:var(--r);margin-top:8px}
+.winner-badge span{font-size:12px;color:var(--gd);font-weight:500}
+.date-inp,.text-inp{width:100%;background:var(--bg2);border:0.5px solid var(--br);border-radius:var(--r);
+  padding:8px 10px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;transition:border-color .15s}
+.date-inp:focus,.text-inp:focus{border-color:var(--g)}
+.text-inp{padding:9px 12px;font-size:14px}
+.field-divider{border:none;border-top:0.5px solid var(--br);margin:16px 0 0}
+.del-body{text-align:center;padding:8px 0}
+.del-body p{font-size:14px;color:var(--t2);margin-bottom:4px}
+.del-body strong{font-size:15px;color:var(--t1)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A1A18;color:#fff;
+  padding:10px 20px;border-radius:var(--r);font-size:13px;z-index:200;pointer-events:none;
+  opacity:0;transition:opacity .2s;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* Loading / empty / setup */
+.loading{display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--t3);font-size:13px;gap:10px}
+.spin{width:18px;height:18px;border:2px solid var(--br);border-top-color:var(--g);
+  border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:36px 20px;color:var(--t3)}
+.empty p{font-size:13px}
+.setup-banner{background:var(--aml);border:0.5px solid var(--am);border-radius:var(--r);
+  padding:12px 16px;margin-bottom:20px;font-size:13px;color:#633806;line-height:1.6}
+.setup-banner code{font-size:12px;background:rgba(0,0,0,0.07);padding:1px 5px;border-radius:4px}
+.err-banner{background:var(--rel);border:0.5px solid var(--re);border-radius:var(--r);
+  padding:12px 16px;margin-bottom:20px;font-size:13px;color:#4A1B0C}
+.retry-btn{margin-left:8px;text-decoration:underline;background:none;border:none;cursor:pointer;
+  color:inherit;font-size:13px;font-family:inherit}
+
+@media(max-width:640px){
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .lb-head,.lb-row{grid-template-columns:26px 1fr 40px 40px 54px 54px;font-size:12px;padding:8px 10px}
+  .ht-head,.ht-row{grid-template-columns:56px 1fr 1fr 58px 60px 50px;font-size:12px;padding:8px 10px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ============================================================
+// CONFIG — paste your Apps Script Web App URL here
+// ============================================================
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  players: [],
+  matches: [],
+  tab: 'dashboard',
+  lbTab: 'all',
+  modal: null,
+  loading: true,
+  error: null,
+  hSearch: '',
+  hFormat: 'all',
+};
+
+// ============================================================
+// UTILITIES
+// ============================================================
+const AV_COLORS = [
+  ['#E1F5EE','#0F6E56'],['#E6F1FB','#185FA5'],['#FAEEDA','#854F0B'],
+  ['#FBEAF0','#993556'],['#EEEDFE','#534AB7'],['#EAF3DE','#3B6D11'],
+  ['#FAECE7','#993C1D'],['#E6F1FB','#0C447C'],['#F1EFE8','#5F5E5A'],
+];
+const avColor = i => AV_COLORS[i % AV_COLORS.length];
+
+function initials(name) {
+  const p = String(name || '').trim().split(/\s+/);
+  return (p[0][0] + (p[1]?.[0] || '')).toUpperCase();
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function fmtDate(d) {
+  if (!d) return '–';
+  const dt = new Date(d + 'T00:00:00');
+  return isNaN(dt) ? d : dt.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function pName(id) {
+  if (!id) return '';
+  return S.players.find(p => p.id === id)?.name || String(id);
+}
+
+function pIdx(id) {
+  const i = S.players.findIndex(p => p.id === id);
+  return i >= 0 ? i : 0;
+}
+
+// ============================================================
+// STATS COMPUTATION
+// ============================================================
+function computeStats(format) {
+  const map = {};
+  S.players.forEach(p => { map[p.id] = { id:p.id, name:p.name, wins:0, losses:0, hist:[] }; });
+
+  const matches = format === 'all' ? S.matches : S.matches.filter(m => m.format === format);
+  const sorted  = [...matches].sort((a,b) => a.date.localeCompare(b.date));
+
+  sorted.forEach(m => {
+    const aWins = Number(m.scoreA) > Number(m.scoreB);
+    [m.teamA1, m.teamA2].filter(Boolean).forEach(pid => {
+      if (!map[pid]) return;
+      aWins ? map[pid].wins++ : map[pid].losses++;
+      map[pid].hist.push(aWins ? 'W' : 'L');
+    });
+    [m.teamB1, m.teamB2].filter(Boolean).forEach(pid => {
+      if (!map[pid]) return;
+      !aWins ? map[pid].wins++ : map[pid].losses++;
+      map[pid].hist.push(!aWins ? 'W' : 'L');
+    });
+  });
+
+  return Object.values(map).map(s => {
+    const total  = s.wins + s.losses;
+    const winPct = total > 0 ? Math.round(s.wins / total * 100) : 0;
+    let streak = 0, st = null;
+    for (let i = s.hist.length - 1; i >= 0; i--) {
+      if (!st) { st = s.hist[i]; streak = 1; }
+      else if (s.hist[i] === st) streak++;
+      else break;
+    }
+    return { ...s, total, winPct, streak: st ? st + streak : '–' };
+  }).filter(s => s.total > 0)
+    .sort((a,b) => b.winPct - a.winPct || b.wins - a.wins || a.name.localeCompare(b.name));
+}
+
+// ============================================================
+// API
+// ============================================================
+async function api(action, params = {}) {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    throw new Error('NOT_CONFIGURED');
+  }
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  url.searchParams.set('t', Date.now());
+  for (const [k, v] of Object.entries(params)) {
+    url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
+  }
+  const res  = await fetch(url.toString());
+  if (!res.ok) throw new Error('Network error ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+async function loadData() {
+  S.loading = true;
+  render();
+  try {
+    const data = await api('getAll');
+    S.players = data.players || [];
+    S.matches = data.matches || [];
+    S.error   = null;
+  } catch(e) {
+    S.error = e.message;
+  }
+  S.loading = false;
+  render();
+}
+
+// ============================================================
+// MAIN RENDER
+// ============================================================
+function render() {
+  document.getElementById('app').innerHTML = buildApp();
+}
+
+function buildApp() {
+  return `
+    <div class="wrap">
+      ${buildHeader()}
+      ${buildNav()}
+      ${S.loading ? '<div class="loading"><div class="spin"></div>Loading…</div>' :
+        S.error   ? buildErrorView() :
+        S.tab === 'dashboard' ? buildDashboard() :
+        S.tab === 'history'   ? buildHistory()   : buildPlayers()}
+    </div>
+  `;
+}
+
+function buildHeader() {
+  return `<div class="header">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <ellipse cx="16" cy="16" rx="10" ry="14" fill="#1D9E75" transform="rotate(-15 16 16)"/>
+      <ellipse cx="16" cy="16" rx="5.5" ry="8" fill="#E1F5EE" transform="rotate(-15 16 16)"/>
+      <line x1="7.5" y1="26.5" x2="3" y2="31" stroke="#854F0B" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <h1>Pickleball League</h1>
+    <button class="btn-primary" data-a="open-match-modal">+ Log match</button>
+  </div>`;
+}
+
+function buildNav() {
+  return `<nav class="nav">
+    ${[['dashboard','Dashboard'],['history','Match history'],['players','Players']].map(([id,label]) =>
+      `<button class="nav-btn${S.tab===id?' on':''}" data-a="tab" data-tab="${id}">${label}</button>`
+    ).join('')}
+  </nav>`;
+}
+
+function buildErrorView() {
+  if (S.error === 'NOT_CONFIGURED') {
+    return `<div class="setup-banner">
+      <strong>Setup required —</strong> open <code>index.html</code>, find the
+      <code>SCRIPT_URL</code> constant at the top of the script block, and replace
+      <code>YOUR_APPS_SCRIPT_URL_HERE</code> with your Google Apps Script deployment URL.<br>
+      See <strong>SETUP.md</strong> for the full step-by-step.
+    </div>`;
+  }
+  return `<div class="err-banner">
+    <strong>Error:</strong> ${esc(S.error)}
+    <button class="retry-btn" onclick="loadData()">Retry</button>
+  </div>`;
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function buildDashboard() {
+  const allStats  = computeStats('all');
+  const topPlayer = allStats[0];
+  const lastMatch = S.matches.length
+    ? [...S.matches].sort((a,b) => b.date.localeCompare(a.date))[0]
+    : null;
+
+  return `
+    ${buildSetupBanner()}
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Total matches</div>
+        <div class="metric-val">${S.matches.length}</div>
+        <div class="metric-sub">all time</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Players</div>
+        <div class="metric-val">${S.players.length}</div>
+        <div class="metric-sub">registered</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Last game</div>
+        <div class="metric-val" style="font-size:17px">${lastMatch ? fmtDate(lastMatch.date) : '–'}</div>
+        <div class="metric-sub">${lastMatch ? lastMatch.format : ''}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Top player</div>
+        <div class="metric-val" style="font-size:16px">${topPlayer ? esc(topPlayer.name) : '–'}</div>
+        <div class="metric-sub">${topPlayer ? topPlayer.winPct + '% win rate' : 'no data yet'}</div>
+      </div>
+    </div>
+    <div class="lb-header">
+      <span class="section-label">Leaderboard</span>
+      <div class="tab-pills">
+        <button class="pill-btn${S.lbTab==='all'?     ' on':''}" data-a="lb-tab" data-tab="all">Overall</button>
+        <button class="pill-btn${S.lbTab==='singles'? ' on':''}" data-a="lb-tab" data-tab="singles">Singles</button>
+        <button class="pill-btn${S.lbTab==='doubles'? ' on':''}" data-a="lb-tab" data-tab="doubles">Doubles</button>
+      </div>
+    </div>
+    <div class="lb-wrap" id="lb-wrap">${buildLbContent()}</div>
+  `;
+}
+
+function buildSetupBanner() {
+  if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') return '';
+  return `<div class="setup-banner">
+    <strong>Setup required —</strong> paste your Apps Script URL into the
+    <code>SCRIPT_URL</code> constant in <code>index.html</code>.
+  </div>`;
+}
+
+function buildLbContent() {
+  const stats = computeStats(S.lbTab);
+  if (!stats.length) return `<div class="empty"><p>No match data yet — log some games!</p></div>`;
+
+  return `
+    <div class="lb-head">
+      <div></div><div>Player</div>
+      <div class="num">W</div><div class="num">L</div>
+      <div class="num">Win %</div><div class="num">Streak</div>
+    </div>
+    ${stats.map((s, i) => {
+      const [bg, col] = avColor(pIdx(s.id));
+      const rankCls   = i===0?'rank rank-1':i===1?'rank rank-2':i===2?'rank rank-3':'rank';
+      const pctCol    = s.winPct>=65?'var(--g)':s.winPct>=45?'var(--am)':'var(--re)';
+      const isW       = s.streak.startsWith('W');
+      return `<div class="lb-row">
+        <div class="${rankCls}">${i+1}</div>
+        <div class="player-cell">
+          <div class="av" style="background:${bg};color:${col}">${esc(initials(s.name))}</div>
+          <span class="pname">${esc(s.name)}</span>
+        </div>
+        <div class="num">${s.wins}</div>
+        <div class="num">${s.losses}</div>
+        <div class="winpct" style="color:${pctCol}">${s.winPct}%</div>
+        <div class="streak-cell"><span class="streak-pill ${isW?'sw':'sl'}">${esc(s.streak)}</span></div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function buildHistory() {
+  return `
+    <div class="toolbar">
+      <input class="search-input" type="text" placeholder="Search by player name…"
+        value="${esc(S.hSearch)}" oninput="onSearchInput(this.value)">
+      <select class="filter-sel" onchange="onFormatFilter(this.value)">
+        <option value="all"${S.hFormat==='all'?' selected':''}>All formats</option>
+        <option value="singles"${S.hFormat==='singles'?' selected':''}>Singles</option>
+        <option value="doubles"${S.hFormat==='doubles'?' selected':''}>Doubles</option>
+      </select>
+    </div>
+    <div class="htable-wrap">
+      <div class="ht-head">
+        <div>Date</div><div>Team A</div><div>Team B</div>
+        <div class="num">Score</div><div class="num">Format</div><div></div>
+      </div>
+      <div id="history-rows">${buildHistoryRows()}</div>
+    </div>
+  `;
+}
+
+function buildHistoryRows() {
+  let rows = [...S.matches].sort((a,b) => b.date.localeCompare(a.date));
+  if (S.hFormat !== 'all') rows = rows.filter(m => m.format === S.hFormat);
+  if (S.hSearch) {
+    const q = S.hSearch.toLowerCase();
+    rows = rows.filter(m =>
+      [m.teamA1,m.teamA2,m.teamB1,m.teamB2].filter(Boolean)
+        .map(id => pName(id).toLowerCase())
+        .some(n => n.includes(q))
+    );
+  }
+
+  if (!rows.length) return `<div class="empty"><p>No matches found.</p></div>`;
+
+  return rows.map(m => {
+    const aWins  = Number(m.scoreA) > Number(m.scoreB);
+    const teamA  = [m.teamA1, m.teamA2].filter(Boolean);
+    const teamB  = [m.teamB1, m.teamB2].filter(Boolean);
+    const scoreH = aWins
+      ? `<span class="ws">${m.scoreA}</span> – ${m.scoreB}`
+      : `${m.scoreA} – <span class="ws">${m.scoreB}</span>`;
+
+    return `<div class="ht-row">
+      <div class="date-col">${esc(fmtDate(m.date))}</div>
+      <div class="team-col">${teamA.map(id=>`<div class="team-name${aWins?' w':''}">${esc(pName(id))}</div>`).join('')}</div>
+      <div class="team-col">${teamB.map(id=>`<div class="team-name${!aWins?' w':''}">${esc(pName(id))}</div>`).join('')}</div>
+      <div class="score-col">${scoreH}</div>
+      <div style="text-align:center">
+        <span class="fmt-pill ${m.format==='singles'?'fp-s':'fp-d'}">${m.format==='singles'?'Singles':'Doubles'}</span>
+      </div>
+      <div class="row-actions">
+        <button class="icon-btn" data-a="edit-match" data-id="${esc(m.id)}" title="Edit">✎</button>
+        <button class="icon-btn danger" data-a="del-match" data-id="${esc(m.id)}" title="Delete">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// PLAYERS
+// ============================================================
+function buildPlayers() {
+  const statsMap = Object.fromEntries(computeStats('all').map(s => [s.id, s]));
+
+  return `
+    <div class="players-header">
+      <h2>Players <span style="font-size:13px;color:var(--t3);font-weight:400">(${S.players.length})</span></h2>
+      <button class="btn-primary" data-a="open-player-modal">+ Add player</button>
+    </div>
+    <div class="pgrid">
+      ${S.players.map((p, i) => {
+        const s         = statsMap[p.id];
+        const [bg, col] = avColor(i);
+        const winPct    = s?.winPct ?? 0;
+        const pctCol    = s&&s.total>0 ? (winPct>=65?'var(--g)':winPct>=45?'var(--am)':'var(--re)') : 'var(--t3)';
+        return `<div class="pcard">
+          <div class="card-actions">
+            <button class="icon-btn" data-a="edit-player" data-id="${esc(p.id)}" title="Edit">✎</button>
+            <button class="icon-btn danger" data-a="del-player" data-id="${esc(p.id)}" title="Remove">✕</button>
+          </div>
+          <div class="av-lg" style="background:${bg};color:${col}">${esc(initials(p.name))}</div>
+          <div class="pcard-name">${esc(p.name)}</div>
+          <div class="pcard-stats">
+            <div class="pstat"><div class="pstat-val">${s?.total ?? 0}</div><div class="pstat-label">Played</div></div>
+            <div class="pstat"><div class="pstat-val" style="color:${pctCol}">${winPct}%</div><div class="pstat-label">Win rate</div></div>
+          </div>
+          <div class="pcard-joined">Since ${esc(p.joinedDate)}</div>
+        </div>`;
+      }).join('')}
+      <div class="add-card" data-a="open-player-modal">
+        <div class="add-plus">+</div>Add player
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function renderModal() {
+  let el = document.getElementById('modal-root');
+  if (!el) { el = document.createElement('div'); el.id = 'modal-root'; document.body.appendChild(el); }
+  el.innerHTML = S.modal ? buildModal() : '';
+}
+
+function buildModal() {
+  const { type, data, formData } = S.modal;
+  if (type === 'match')      return buildMatchModal(data, formData);
+  if (type === 'player')     return buildPlayerModal(data);
+  if (type === 'del-match')  return buildDeleteModal('match',  data.id, `${pName(data.teamA1)} vs ${pName(data.teamB1)}`);
+  if (type === 'del-player') return buildDeleteModal('player', data.id, data.name);
+  return '';
+}
+
+function buildMatchModal(match, fd) {
+  const isEdit = !!match;
+  const isDbl  = fd.format === 'doubles';
+  const sA     = fd.scoreA !== '' ? Number(fd.scoreA) : NaN;
+  const sB     = fd.scoreB !== '' ? Number(fd.scoreB) : NaN;
+  const scored = !isNaN(sA) && !isNaN(sB) && sA !== sB;
+
+  let winnerBadge = '';
+  if (scored) {
+    const aWins   = sA > sB;
+    const winIds  = aWins ? [fd.teamA1, isDbl?fd.teamA2:null] : [fd.teamB1, isDbl?fd.teamB2:null];
+    const names   = winIds.filter(Boolean).map(id => pName(id)).filter(Boolean);
+    if (names.length) winnerBadge = `<div class="winner-badge"><span>${esc(names.join(' &amp; '))} win — ${sA}–${sB}</span></div>`;
+  }
+
+  const pOpts = (sel) => `<option value="">Select player…</option>` +
+    S.players.map(p => `<option value="${esc(p.id)}"${p.id===sel?' selected':''}>${esc(p.name)}</option>`).join('');
+
+  return `<div class="modal-bg" data-a="close-modal">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3>${isEdit?'Edit match':'Log match'}</h3>
+        <button class="modal-close" data-a="close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label">Format</label>
+          <div class="toggle-group">
+            <button class="tgl-btn${fd.format==='singles'?' on':''}" data-a="set-format" data-fmt="singles">Singles</button>
+            <button class="tgl-btn${fd.format==='doubles'?' on':''}" data-a="set-format" data-fmt="doubles">Doubles</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Players</label>
+          <div class="players-form-grid">
+            <div class="team-slots">
+              <select class="pselect" id="mA1" onchange="captureAndUpdateBadge()">${pOpts(fd.teamA1)}</select>
+              ${isDbl ? `<select class="pselect" id="mA2" onchange="captureAndUpdateBadge()">${pOpts(fd.teamA2)}</select>`
+                      : `<input type="hidden" id="mA2" value="">`}
+            </div>
+            <div class="vs-sep">vs</div>
+            <div class="team-slots">
+              <select class="pselect" id="mB1" onchange="captureAndUpdateBadge()">${pOpts(fd.teamB1)}</select>
+              ${isDbl ? `<select class="pselect" id="mB2" onchange="captureAndUpdateBadge()">${pOpts(fd.teamB2)}</select>`
+                      : `<input type="hidden" id="mB2" value="">`}
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Score</label>
+          <div class="score-form-row">
+            <input class="score-inp${scored&&sA>sB?' win':''}" type="number" id="mSA"
+              min="0" value="${esc(fd.scoreA)}" placeholder="0" oninput="captureAndUpdateBadge()">
+            <div class="score-sep">–</div>
+            <input class="score-inp${scored&&sB>sA?' win':''}" type="number" id="mSB"
+              min="0" value="${esc(fd.scoreB)}" placeholder="0" oninput="captureAndUpdateBadge()">
+          </div>
+          <div id="winner-badge">${winnerBadge}</div>
+        </div>
+        <hr class="field-divider">
+        <div class="field" style="margin-top:16px;margin-bottom:0">
+          <label class="field-label">Date</label>
+          <input class="date-inp" type="date" id="mDate" value="${esc(fd.date)}">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-outline" data-a="close-modal">Cancel</button>
+        <button class="btn-primary" id="save-match-btn" style="flex:2" data-a="save-match">Save match</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildPlayerModal(player) {
+  return `<div class="modal-bg" data-a="close-modal">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3>${player?'Edit player':'Add player'}</h3>
+        <button class="modal-close" data-a="close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field" style="margin-bottom:0">
+          <label class="field-label">Name</label>
+          <input class="text-inp" type="text" id="pNameInp"
+            value="${esc(player?.name||'')}" placeholder="Full name" autofocus>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-outline" data-a="close-modal">Cancel</button>
+        <button class="btn-primary" id="save-player-btn" style="flex:2" data-a="save-player">Save</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildDeleteModal(type, id, label) {
+  return `<div class="modal-bg" data-a="close-modal">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <h3>Confirm delete</h3>
+        <button class="modal-close" data-a="close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="del-body">
+          <p>Delete this ${type}?</p>
+          <strong>${esc(label)}</strong>
+          <p style="margin-top:8px;font-size:12px;color:var(--t3)">This cannot be undone.</p>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-outline" data-a="close-modal">Cancel</button>
+        <button class="btn-danger" id="confirm-del-btn" data-a="confirm-delete"
+          data-type="${type}" data-id="${esc(id)}">Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// INLINE UPDATES (avoid full re-render for performance)
+// ============================================================
+function onSearchInput(val) {
+  S.hSearch = val;
+  const el = document.getElementById('history-rows');
+  if (el) el.innerHTML = buildHistoryRows();
+}
+
+function onFormatFilter(val) {
+  S.hFormat = val;
+  const el = document.getElementById('history-rows');
+  if (el) el.innerHTML = buildHistoryRows();
+}
+
+function captureAndUpdateBadge() {
+  const sA = parseFloat(document.getElementById('mSA')?.value);
+  const sB = parseFloat(document.getElementById('mSB')?.value);
+  const iA = document.getElementById('mSA');
+  const iB = document.getElementById('mSB');
+  const badge = document.getElementById('winner-badge');
+
+  if (iA && iB) {
+    const valid = !isNaN(sA) && !isNaN(sB) && sA !== sB;
+    iA.className = 'score-inp' + (valid && sA > sB ? ' win' : '');
+    iB.className = 'score-inp' + (valid && sB > sA ? ' win' : '');
+  }
+
+  if (badge && !isNaN(sA) && !isNaN(sB) && sA !== sB) {
+    const aWins = sA > sB;
+    const a1 = document.getElementById('mA1')?.value;
+    const a2 = document.getElementById('mA2')?.value;
+    const b1 = document.getElementById('mB1')?.value;
+    const b2 = document.getElementById('mB2')?.value;
+    const winIds = aWins ? [a1,a2] : [b1,b2];
+    const names  = winIds.filter(Boolean).map(id => pName(id)).filter(Boolean);
+    if (names.length && names[0]) {
+      badge.innerHTML = `<div class="winner-badge"><span>${esc(names.join(' &amp; '))} win — ${sA}–${sB}</span></div>`;
+    }
+  } else if (badge) {
+    badge.innerHTML = '';
+  }
+}
+
+// ============================================================
+// OPEN MODALS
+// ============================================================
+function openMatchModal(match = null) {
+  S.modal = {
+    type: 'match',
+    data: match,
+    formData: {
+      format: match?.format || 'doubles',
+      teamA1: match?.teamA1 || '',
+      teamA2: match?.teamA2 || '',
+      teamB1: match?.teamB1 || '',
+      teamB2: match?.teamB2 || '',
+      scoreA: match !== null ? String(match.scoreA) : '',
+      scoreB: match !== null ? String(match.scoreB) : '',
+      date:   match?.date || today(),
+    }
+  };
+  renderModal();
+}
+
+function openPlayerModal(player = null) {
+  S.modal = { type: 'player', data: player, formData: {} };
+  renderModal();
+}
+
+function openDeleteMatchModal(id) {
+  const m = S.matches.find(x => x.id === id);
+  if (m) { S.modal = { type:'del-match', data:m, formData:{} }; renderModal(); }
+}
+
+function openDeletePlayerModal(id) {
+  const p = S.players.find(x => x.id === id);
+  if (p) { S.modal = { type:'del-player', data:p, formData:{} }; renderModal(); }
+}
+
+// ============================================================
+// CAPTURE FORM → STATE (called before format toggle)
+// ============================================================
+function captureMatchForm() {
+  if (!S.modal || S.modal.type !== 'match') return;
+  const fd = S.modal.formData;
+  fd.teamA1 = document.getElementById('mA1')?.value  || '';
+  fd.teamA2 = document.getElementById('mA2')?.value  || '';
+  fd.teamB1 = document.getElementById('mB1')?.value  || '';
+  fd.teamB2 = document.getElementById('mB2')?.value  || '';
+  fd.scoreA = document.getElementById('mSA')?.value  || '';
+  fd.scoreB = document.getElementById('mSB')?.value  || '';
+  fd.date   = document.getElementById('mDate')?.value || '';
+}
+
+// ============================================================
+// SAVE ACTIONS
+// ============================================================
+async function saveMatch() {
+  captureMatchForm();
+  const fd    = S.modal.formData;
+  const isDbl = fd.format === 'doubles';
+
+  if (!fd.teamA1 || !fd.teamB1)                    return showToast('Select players for both teams.');
+  if (isDbl && (!fd.teamA2 || !fd.teamB2))          return showToast('Select all 4 players for doubles.');
+  const allPids = [fd.teamA1, isDbl?fd.teamA2:null, fd.teamB1, isDbl?fd.teamB2:null].filter(Boolean);
+  if (new Set(allPids).size < allPids.length)       return showToast('A player cannot appear twice.');
+  if (fd.scoreA === '' || fd.scoreB === '')         return showToast('Enter the score.');
+  if (Number(fd.scoreA) === Number(fd.scoreB))      return showToast('Scores cannot be equal.');
+  if (!fd.date)                                     return showToast('Select a date.');
+
+  const payload = {
+    format: fd.format,
+    teamA1: fd.teamA1, teamA2: isDbl ? fd.teamA2 : '',
+    teamB1: fd.teamB1, teamB2: isDbl ? fd.teamB2 : '',
+    scoreA: Number(fd.scoreA), scoreB: Number(fd.scoreB),
+    date: fd.date,
+  };
+
+  setBusy('save-match-btn', true);
+  try {
+    if (S.modal.data) {
+      await api('editMatch', { data: { id: S.modal.data.id, ...payload } });
+      showToast('Match updated.');
+    } else {
+      await api('addMatch', { data: payload });
+      showToast('Match saved.');
+    }
+    S.modal = null; renderModal();
+    await loadData();
+  } catch(e) {
+    showToast('Error: ' + e.message);
+    setBusy('save-match-btn', false);
+  }
+}
+
+async function savePlayer() {
+  const name = document.getElementById('pNameInp')?.value?.trim();
+  if (!name) return showToast('Enter a name.');
+  if (S.players.some(p => p.name.toLowerCase()===name.toLowerCase() && p.id!==S.modal.data?.id))
+    return showToast('A player with that name already exists.');
+
+  setBusy('save-player-btn', true);
+  try {
+    if (S.modal.data) {
+      await api('editPlayer', { data: { id: S.modal.data.id, name } });
+      showToast('Player updated.');
+    } else {
+      await api('addPlayer', { data: { name } });
+      showToast('Player added.');
+    }
+    S.modal = null; renderModal();
+    await loadData();
+  } catch(e) {
+    showToast('Error: ' + e.message);
+    setBusy('save-player-btn', false);
+  }
+}
+
+async function confirmDelete(type, id) {
+  setBusy('confirm-del-btn', true);
+  try {
+    await api(type==='match' ? 'deleteMatch' : 'deletePlayer', { id });
+    showToast(type==='match' ? 'Match deleted.' : 'Player removed.');
+    S.modal = null; renderModal();
+    await loadData();
+  } catch(e) {
+    showToast('Error: ' + e.message);
+    setBusy('confirm-del-btn', false);
+  }
+}
+
+function setBusy(id, on) {
+  const el = document.getElementById(id);
+  if (el) { el.disabled = on; if (on) el.textContent = 'Saving…'; }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+const toastEl = document.createElement('div');
+toastEl.id = 'toast'; toastEl.className = 'toast';
+document.body.appendChild(toastEl);
+
+let toastTimer;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800);
+}
+
+// ============================================================
+// EVENT DELEGATION
+// ============================================================
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (!el) return;
+  const a = el.dataset.a;
+
+  if (a === 'tab') {
+    S.tab = el.dataset.tab; render();
+
+  } else if (a === 'lb-tab') {
+    S.lbTab = el.dataset.tab;
+    document.querySelectorAll('.pill-btn').forEach(b => b.classList.toggle('on', b.dataset.tab === S.lbTab));
+    const wrap = document.getElementById('lb-wrap');
+    if (wrap) wrap.innerHTML = buildLbContent();
+
+  } else if (a === 'open-match-modal') { openMatchModal(); }
+  else if (a === 'edit-match')  { const m = S.matches.find(x=>x.id===el.dataset.id); if(m) openMatchModal(m); }
+  else if (a === 'del-match')   { openDeleteMatchModal(el.dataset.id); }
+  else if (a === 'open-player-modal') { openPlayerModal(); }
+  else if (a === 'edit-player') { const p = S.players.find(x=>x.id===el.dataset.id); if(p) openPlayerModal(p); }
+  else if (a === 'del-player')  { openDeletePlayerModal(el.dataset.id); }
+  else if (a === 'close-modal') { S.modal = null; renderModal(); }
+  else if (a === 'set-format')  { captureMatchForm(); S.modal.formData.format = el.dataset.fmt; renderModal(); }
+  else if (a === 'save-match')   saveMatch();
+  else if (a === 'save-player')  savePlayer();
+  else if (a === 'confirm-delete') confirmDelete(el.dataset.type, el.dataset.id);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.modal) { S.modal = null; renderModal(); }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+loadData();
+</script>
+</body>
+</html>
